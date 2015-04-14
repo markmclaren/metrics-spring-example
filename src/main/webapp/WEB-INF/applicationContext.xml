@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:metrics="http://www.ryantenney.com/schema/metrics"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:beans="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+       http://www.ryantenney.com/schema/metrics http://www.ryantenney.com/schema/metrics/metrics-3.0.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+  <context:annotation-config />
+  <context:component-scan base-package="com.markmclaren"/>
+
+  <!-- Registry should be defined in only one context XML file -->
+  <metrics:metric-registry id="metrics" />
+
+  <metrics:health-check-registry id="healthCheck" />
+
+  <!-- annotation-driven must be included in all context files -->
+  <metrics:annotation-driven metric-registry="metrics"
+                             health-check-registry="healthCheck" />
+
+  <bean class="org.springframework.web.context.support.ServletContextAttributeExporter">
+    <property name="attributes">
+      <map>
+        <entry key="com.codahale.metrics.servlets.MetricsServlet.registry">
+          <ref bean="metrics" />
+        </entry>
+        <entry key="com.codahale.metrics.servlets.HealthCheckServlet.registry">
+          <ref bean="healthCheck" />
+        </entry>
+        <entry key="com.codahale.metrics.servlet.InstrumentedFilter.registry">
+          <ref bean="metrics" />
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <!-- (Optional) The metrics in this example require the metrics-jvm jar-->
+  <metrics:register metric-registry="metrics">
+    <bean metrics:name="jvm.gc" class="com.codahale.metrics.jvm.GarbageCollectorMetricSet" />
+    <bean metrics:name="jvm.memory" class="com.codahale.metrics.jvm.MemoryUsageGaugeSet" />
+    <bean metrics:name="jvm.thread-states" class="com.codahale.metrics.jvm.ThreadStatesGaugeSet" />
+    <bean metrics:name="jvm.fd.usage" class="com.codahale.metrics.jvm.FileDescriptorRatioGauge" />
+  </metrics:register>
+
+  <!-- (Optional) Registry should be defined in only one context XML file -->
+  <metrics:reporter type="console" metric-registry="metrics" period="1m" />
+
+</beans>

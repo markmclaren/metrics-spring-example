@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Metrics-Watcher: Metrics Spring Example</title>
+
+    <!-- must include jquery -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+    <!-- must include bootstrap -->
+    <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+
+    <!--  And include the metrics-watcher library -->
+    <script src="metrics-watcher.js"></script>
+    <!-- And include the metrics stylesheet -->
+    <link href="metrics-watcher-style.css" rel="stylesheet">
+
+    <script>
+      // See example-metrics.js for sample of the Metrics-servlet format
+      function addGraphs() {
+
+        metricsWatcher.addCounter("activeRequests",
+                "com.codahale.metrics.servlet.InstrumentedFilter", "activeRequests",
+                2, "Active Requests");
+
+        metricsWatcher.addJvm("jvm", "jvm", "JVM Statistics");
+
+        metricsWatcher.addTimer("requestsTimer", "com.codahale.metrics.servlet.InstrumentedFilter", "requests", 1, "Requests", "requests", 1);
+
+        metricsWatcher.addTimer("fast", "com.markmclaren.web.Home", "fast", 1, "Fast controller", "requests", 1);
+        metricsWatcher.addTimer("slow", "com.markmclaren.web.Home", "slow", 1, "Slow controller", "requests", 1);
+        metricsWatcher.addTimer("random", "com.markmclaren.web.Home", "random", 1, "Random controller", "requests", 1);
+
+        metricsWatcher.addMeter("badRequest", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "badRequest", 1, "Bad request (400)");
+        metricsWatcher.addMeter("created", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "created", 1, "Created (201)");
+        metricsWatcher.addMeter("noContent", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "noContent", 1, "No content (204)");
+        metricsWatcher.addMeter("notFound", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "notFound", 1, "Not found (404)");
+        metricsWatcher.addMeter("ok", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "ok", 1, "Okay (200)");
+        metricsWatcher.addMeter("other", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "other", 1, "Other");
+        metricsWatcher.addMeter("serverError", "com.codahale.metrics.servlet.InstrumentedFilter.responseCodes", "serverError", 1, "Server error (500)");
+
+      }
+
+      $(document).ready(function () {
+        addGraphs();
+        metricsWatcher.initGraphs();
+        keepUpdatingGraphs();
+      });
+
+      function keepUpdatingGraphs() {
+        downloadMetricData();
+        setTimeout(keepUpdatingGraphs, 60000); // 1 minute
+      }
+
+      function downloadMetricData() {
+        // Normally metric data will be loaded from a servlet with an Ajax call like the following.
+        url = "../metrics/metrics";
+        $.ajax({
+          contentType: "application/json",
+          url: url,
+          success: function (data) {
+            metricsWatcher.updateGraphs(data);
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            //alert("Error - " + xhr.status + "Message: " + thrownError);
+            metricsWatcher.initGraphs();
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <a class="btn navbar-btn" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="glyphicon-bar"></span>
+        <span class="glyphicon-bar"></span>
+        <span class="glyphicon-bar"></span>
+      </a>
+      <a class="navbar-brand" href="#">Metrics-Watcher: Metrics Spring Example</a>
+      <div class="navbar-collapse">
+        <ul class="nav"></ul>
+      </div>
+    </nav>
+
+    <div class="container mainContent">
+      <div class="row">
+        <div id="activeRequests"></div>
+      </div>
+      <br />
+      <div class="row">
+        <div id="jvm"></div>
+      </div>
+      <br />
+      <div class="row">
+        <div id="requestsTimer"></div>
+      </div>
+      <br />
+      <div class="row">
+        <div id="slow"></div>
+      </div>
+      <br />
+      <div class="row">
+        <div id="fast"></div>
+      </div>
+      <br />
+      <div class="row">
+        <div id="random"></div>
+      </div>
+      <br />
+      <div class="row">
+          <h2>Response codes</h2>
+          <div id="badRequest" class="col-md-3"></div>
+          <div id="created" class="col-md-3"></div>
+          <div id="noContent" class="col-md-3"></div>
+          <div id="notFound" class="col-md-3"></div>
+          <div id="ok" class="col-md-3"></div>
+          <div id="serverError" class="col-md-3"></div>
+          <div id="other" class="col-md-3"></div>
+      </div>
+      <br />
+    </div>
+  </body>
+</html>
