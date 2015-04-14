@@ -8,7 +8,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>metrics-spring-example</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/markmclaren/metrics-spring-example</url>
 
   <dependencies>
     <dependency>
